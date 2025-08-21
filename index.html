@@ -1,0 +1,2948 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サーバーラック搭載図エディタ Pro v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+        
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* ラックタブ */
+        .rack-tabs {
+            background: #34495e;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            min-height: 40px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+        
+        .rack-tab {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+        
+        .rack-tab:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .rack-tab.active {
+            background: white;
+            color: #2c3e50;
+        }
+        
+        .rack-tab-close {
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.7;
+            margin-left: 5px;
+        }
+        
+        .rack-tab-close:hover {
+            opacity: 1;
+            color: #e74c3c;
+        }
+        
+        .add-rack-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+        
+        .add-rack-btn:hover {
+            background: #229954;
+        }
+        
+        .view-mode-toggle {
+            margin-left: auto;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .view-mode-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .view-mode-btn.active {
+            background: rgba(255,255,255,0.4);
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .control-panel {
+            width: 320px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-right: 2px solid #dee2e6;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        /* 保存メモリセクション */
+        .memory-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .memory-section h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .memory-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .memory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .memory-item:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+        
+        .memory-item-info {
+            flex: 1;
+        }
+        
+        .memory-item-name {
+            font-weight: bold;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        
+        .memory-item-details {
+            font-size: 10px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        
+        .memory-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .memory-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+        
+        .memory-btn-load {
+            background: #667eea;
+            color: white;
+        }
+        
+        .memory-btn-load:hover {
+            background: #5a67d8;
+        }
+        
+        .memory-btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .memory-btn-delete:hover {
+            background: #c0392b;
+        }
+        
+        .save-memory-btn {
+            width: 100%;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        .save-memory-btn:hover {
+            background: #229954;
+        }
+        
+        /* 複数ラック表示 - 改善版 */
+        .multi-rack-view {
+            flex: 1;
+            padding: 15px;
+            background: #f5f5f5;
+            overflow: auto;
+            display: none;
+        }
+        
+        .multi-rack-view.active {
+            display: block;
+        }
+        
+        .multi-rack-container {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            min-width: fit-content;
+            justify-content: flex-start;
+            align-items: flex-end;
+        }
+        
+        .mini-rack-wrapper {
+            flex-shrink: 0;
+            transform: scale(0.7);
+            transform-origin: bottom left;
+            margin-right: -120px;
+        }
+        
+        .rack-area {
+            flex: 1;
+            padding: 15px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            position: relative;
+            overflow: auto;
+        }
+        
+        .rack-area.hidden {
+            display: none;
+        }
+        
+        .rack-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            position: relative;
+            padding-bottom: 50px;
+        }
+        
+        .rack-container {
+            position: relative;
+            background: #e0e0e0;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            margin-left: 50px;
+        }
+        
+        .rack-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .rack-frame {
+            position: relative;
+            background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+            border: 2px solid #1a1a1a;
+            border-radius: 6px;
+            box-shadow: 
+                inset 0 0 15px rgba(0,0,0,0.5),
+                0 4px 15px rgba(0,0,0,0.3);
+            padding: 8px 4px;
+        }
+        
+        .rack-inner {
+            background: #1a1a1a;
+            border: 2px solid #0a0a0a;
+            border-radius: 3px;
+            position: relative;
+            padding: 0;
+        }
+        
+        .rack-posts {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 12px;
+            background: linear-gradient(90deg, #4a4a4a 0%, #3a3a3a 50%, #4a4a4a 100%);
+            border: 1px solid #2a2a2a;
+            z-index: 2;
+        }
+        
+        .rack-posts.left {
+            left: 0;
+            border-radius: 2px 0 0 2px;
+        }
+        
+        .rack-posts.right {
+            right: 0;
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .mounting-holes {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+        
+        .rack-units-container {
+            width: 400px;
+            position: relative;
+            padding: 0 12px;
+        }
+        
+        .rack-unit {
+            height: 24px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #2a2a2a;
+        }
+        
+        .rack-unit:first-child {
+            border-top: none;
+        }
+        
+        .unit-space {
+            flex: 1;
+            height: 100%;
+            background: #0f0f0f;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a4a4a;
+            font-size: 9px;
+            transition: all 0.3s ease;
+        }
+        
+        .unit-space:hover:not(.occupied) {
+            background: #1a1a1a;
+            cursor: pointer;
+        }
+        
+        .unit-space.drag-over {
+            background: #2a3a4a !important;
+            border: 2px dashed #667eea;
+        }
+        
+        .unit-number {
+            position: absolute;
+            left: -45px;
+            font-size: 9px;
+            color: #333;
+            font-weight: bold;
+            background: #fff;
+            padding: 1px 3px;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            min-width: 22px;
+            text-align: center;
+        }
+        
+        .power-column {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: 90px;
+        }
+        
+        .power-input-item {
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .power-input-container {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .power-input-container input {
+            width: 45px;
+            padding: 1px 2px;
+            border: 1px solid #ced4da;
+            border-radius: 2px;
+            font-size: 10px;
+            text-align: right;
+        }
+        
+        .power-input-container span {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .power-total-container {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            font-size: 12px;
+            font-weight: bold;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+        }
+        
+        .equipment {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: move;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+            user-select: none;
+        }
+        
+        .equipment.no-color {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+            border-color: #343a40 !important;
+        }
+        
+        .equipment.dragging {
+            opacity: 0.5;
+            z-index: 100;
+        }
+        
+        .equipment:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            z-index: 11;
+        }
+        
+        .equipment::before,
+        .equipment::after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #888;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+        }
+        
+        .equipment::before {
+            left: 4px;
+        }
+        
+        .equipment::after {
+            right: 4px;
+        }
+        
+        .equipment-info {
+            text-align: center;
+            padding: 2px;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .equipment-name {
+            font-size: 10px;
+            margin-bottom: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .equipment-size {
+            font-size: 9px;
+            opacity: 0.9;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 9px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+        
+        .equipment:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255,0,0,0.5);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-close {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            margin-top: 20px;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .modal-btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .modal-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .modal-btn-cancel:hover {
+            background: #5a6268;
+        }
+        
+        .custom-size-input {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .custom-size-input.show {
+            display: block;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            color: #495057;
+            font-size: 13px;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            margin-top: 8px;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .rack-info {
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .equipment-list {
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .equipment-list h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .equipment-list-item {
+            padding: 6px;
+            margin: 4px 0;
+            background: #f8f9fa;
+            border-radius: 3px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .equipment-list-power {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .settings-section {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .settings-section h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .custom-types-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .custom-type-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            background: #f8f9fa;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+        
+        .custom-type-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        
+        .remove-type-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .color-picker-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .total-power-summary {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .total-power-summary h4 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .total-power-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ サーバーラック搭載図エディタ Pro v2</h1>
+            <div class="header-buttons">
+                <button class="header-btn" onclick="openMemoryModal()">💾 メモリ管理</button>
+                <button class="header-btn" onclick="openSettingsModal()">⚙️ 設定</button>
+                <button class="header-btn" onclick="exportData()">📤 エクスポート</button>
+                <button class="header-btn" onclick="document.getElementById('importFile').click()">📥 インポート</button>
+                <button class="header-btn" onclick="exportToExcel()">📊 Excel出力</button>
+                <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+            </div>
+        </div>
+        
+        <div class="rack-tabs">
+            <div id="rackTabsContainer"></div>
+            <button class="add-rack-btn" onclick="addNewRack()" id="addRackBtn">+ ラック追加</button>
+            <div class="view-mode-toggle">
+                <button class="view-mode-btn active" onclick="setViewMode('single', this)">個別表示</button>
+                <button class="view-mode-btn" onclick="setViewMode('all', this)">一覧表示</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- メモリセクション -->
+                <div class="memory-section">
+                    <h4>💾 保存メモリ</h4>
+                    <div class="memory-list" id="memoryList"></div>
+                    <button class="save-memory-btn" onclick="saveToMemory()">現在の構成を保存</button>
+                </div>
+                
+                <div class="control-section">
+                    <h3>現在のラック設定</h3>
+                    <div class="form-group">
+                        <label for="currentRackName">ラック名</label>
+                        <input type="text" id="currentRackName" placeholder="例: メインラック" onchange="updateCurrentRackName()">
+                    </div>
+                    <div class="form-group">
+                        <label for="rackHeight">ラック高さ (U)</label>
+                        <select id="rackHeight">
+                            <option value="12">12U</option>
+                            <option value="24">24U</option>
+                            <option value="36">36U</option>
+                            <option value="42" selected>42U</option>
+                            <option value="48">48U</option>
+                            <option value="custom">カスタム</option>
+                        </select>
+                        <div class="custom-size-input" id="customRackHeightInput">
+                            <input type="number" id="customRackHeight" min="1" max="100" placeholder="高さを入力 (U)">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>機器追加</h3>
+                    <div class="form-group">
+                        <label for="equipmentType">機器タイプ</label>
+                        <select id="equipmentType">
+                            <option value="nas">NAS</option>
+                            <option value="sv">サーバー</option>
+                            <option value="ups">UPS</option>
+                            <option value="switch">スイッチ</option>
+                            <option value="lcd">LCDコンソール</option>
+                            <option value="router">ルーター</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="equipmentSize">サイズ (U)</label>
+                        <select id="equipmentSize">
+                            <option value="1">1U</option>
+                            <option value="2">2U</option>
+                            <option value="3">3U</option>
+                            <option value="4">4U</option>
+                            <option value="custom">カスタム</option>
+                        </select>
+                        <div class="custom-size-input" id="customSizeInput">
+                            <input type="number" id="customSize" min="1" max="48" placeholder="サイズを入力 (U)">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="equipmentName">機器名</label>
+                        <input type="text" id="equipmentName" placeholder="例: Web Server 01">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="startUnit">開始位置 (U番号)</label>
+                        <input type="number" id="startUnit" min="1" value="1">
+                    </div>
+                    
+                    <button class="btn" onclick="addEquipment()">機器を追加</button>
+                </div>
+                
+                <button class="btn btn-danger" onclick="clearCurrentRack()">現在のラックをクリア</button>
+                
+                <div class="equipment-list">
+                    <h4>搭載機器リスト</h4>
+                    <div id="equipmentListContent"></div>
+                </div>
+                
+                <div class="total-power-summary">
+                    <h4>全ラック合計消費電力</h4>
+                    <div class="total-power-value" id="totalSystemPower">0 W</div>
+                </div>
+            </div>
+            
+            <div id="rackAreasContainer"></div>
+            
+            <div class="multi-rack-view" id="multiRackView">
+                <div class="multi-rack-container" id="multiRackContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 編集モーダル -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                機器の編集
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editName">機器名</label>
+                    <input type="text" id="editName">
+                </div>
+                <div class="form-group">
+                    <label for="editSize">サイズ (U)</label>
+                    <select id="editSize">
+                        <option value="1">1U</option>
+                        <option value="2">2U</option>
+                        <option value="3">3U</option>
+                        <option value="4">4U</option>
+                        <option value="custom">カスタム</option>
+                    </select>
+                    <div class="custom-size-input" id="editCustomSizeInput">
+                        <input type="number" id="editCustomSize" min="1" max="48" placeholder="サイズを入力 (U)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editPower">消費電力 (W)</label>
+                    <input type="number" id="editPower" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">キャンセル</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- メモリ管理モーダル -->
+    <div id="memoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                保存メモリ管理
+                <span class="modal-close" onclick="closeMemoryModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="memoryName">保存名</label>
+                    <input type="text" id="memoryName" placeholder="例: 本番環境構成">
+                </div>
+                <button class="btn btn-success" onclick="confirmSaveToMemory()">現在の構成を保存</button>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px;">保存済み構成</h4>
+                    <div id="memoryModalList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 設定モーダル -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                設定
+                <span class="modal-close" onclick="closeSettingsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>表示設定</h4>
+                    <div class="toggle-switch">
+                        <label class="switch">
+                            <input type="checkbox" id="colorCoding" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>機器タイプごとに色分けを行う</span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>機器タイプ管理</h4>
+                    <div class="form-group">
+                        <label>新しい機器タイプを追加</label>
+                        <input type="text" id="newTypeName" placeholder="機器タイプ名">
+                        <div class="color-picker-group">
+                            <input type="color" id="newTypeColor" value="#667eea">
+                            <button class="btn btn-success" onclick="addCustomType()">追加</button>
+                        </div>
+                    </div>
+                    <div class="custom-types-list" id="customTypesList"></div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>既定機器タイプの色設定</h4>
+                    <div id="defaultTypeColors"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="saveSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script>
+        // グローバル変数
+        const MAX_RACKS = 5;
+        const MAX_MEMORY_SLOTS = 10;
+        const UNIT_HEIGHT = 24;
+        const MAX_RACK_HEIGHT_FOR_EXCEL = 48;  // Excel出力時の最大ラック高さ
+        
+        let racks = [];
+        let currentRackIndex = 0;
+        let savedMemories = [];
+        let draggedEquipment = null;
+        let draggedFromRack = null;
+        let editingEquipmentId = null;
+        let editingRackIndex = null;
+        let viewMode = 'single';
+        
+        let settings = {
+            colorCoding: true,
+            customTypes: [],
+            typeColors: {
+                nas: '#f093fb',
+                sv: '#4facfe',
+                ups: '#43e97b',
+                switch: '#fa709a',
+                lcd: '#30cfd0',
+                router: '#a8edea'
+            }
+        };
+        
+        // ラッククラス
+        class Rack {
+            constructor(name = '', height = 42) {
+                this.id = Date.now() + Math.random();
+                this.name = name || `ラック${racks.length + 1}`;
+                this.height = height;
+                this.equipment = [];
+            }
+        }
+        
+        // 初期化
+        function init() {
+            loadSettings();
+            loadMemories();
+            
+            // 初期ラックを作成
+            if (racks.length === 0) {
+                racks.push(new Rack('メインラック', 42));
+            }
+            
+            updateRackTabs();
+            switchToRack(0);
+            updateMemoryList();
+            updateTotalSystemPower();
+        }
+        
+        // 新しいラックを追加
+        function addNewRack() {
+            if (racks.length >= MAX_RACKS) {
+                alert(`最大${MAX_RACKS}つまでのラックを作成できます`);
+                return;
+            }
+            
+            const newRack = new Rack();
+            racks.push(newRack);
+            updateRackTabs();
+            switchToRack(racks.length - 1);
+        }
+        
+        // ラックを削除
+        function removeRack(index) {
+            if (racks.length <= 1) {
+                alert('最後のラックは削除できません');
+                return;
+            }
+            
+            if (confirm(`「${racks[index].name}」を削除しますか？`)) {
+                racks.splice(index, 1);
+                if (currentRackIndex >= racks.length) {
+                    currentRackIndex = racks.length - 1;
+                }
+                updateRackTabs();
+                switchToRack(currentRackIndex);
+            }
+        }
+        
+        // ラックタブを更新
+        function updateRackTabs() {
+            const container = document.getElementById('rackTabsContainer');
+            container.innerHTML = '';
+            
+            racks.forEach((rack, index) => {
+                const tab = document.createElement('button');
+                tab.className = `rack-tab ${index === currentRackIndex ? 'active' : ''}`;
+                tab.innerHTML = `
+                    <span onclick="switchToRack(${index})">${rack.name}</span>
+                    ${racks.length > 1 ? `<span class="rack-tab-close" onclick="event.stopPropagation(); removeRack(${index})">×</span>` : ''}
+                `;
+                container.appendChild(tab);
+            });
+            
+            // ラック追加ボタンの表示/非表示
+            document.getElementById('addRackBtn').style.display = 
+                racks.length >= MAX_RACKS ? 'none' : 'block';
+        }
+        
+        // ラックを切り替え
+        function switchToRack(index) {
+            currentRackIndex = index;
+            const rack = racks[index];
+            
+            // UI更新
+            document.getElementById('currentRackName').value = rack.name;
+            
+            if (rack.height <= 48 && [12, 24, 36, 42, 48].includes(rack.height)) {
+                document.getElementById('rackHeight').value = rack.height;
+                document.getElementById('customRackHeightInput').classList.remove('show');
+            } else {
+                document.getElementById('rackHeight').value = 'custom';
+                document.getElementById('customRackHeight').value = rack.height;
+                document.getElementById('customRackHeightInput').classList.add('show');
+            }
+            
+            updateRackTabs();
+            
+            if (viewMode === 'single') {
+                renderSingleRack();
+            } else {
+                renderAllRacks();
+            }
+            
+            updateEquipmentList();
+            updateTotalSystemPower();
+        }
+        
+        // 現在のラック名を更新
+        function updateCurrentRackName() {
+            const newName = document.getElementById('currentRackName').value;
+            if (newName) {
+                racks[currentRackIndex].name = newName;
+                updateRackTabs();
+            }
+        }
+        
+        // ビューモードを設定（ID重複を完全に解決）
+        function setViewMode(mode, btn) {
+            viewMode = mode;
+            
+            // トグルの見た目
+            document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            const rackAreas = document.getElementById('rackAreasContainer');
+            const multiView = document.getElementById('multiRackView');
+            const multiContainer = document.getElementById('multiRackContainer');
+            
+            if (mode === 'single') {
+                // 一覧側を完全に空にする（ID重複を避ける）
+                multiContainer.innerHTML = '';
+                multiView.classList.remove('active');
+                
+                rackAreas.style.display = 'block';
+                renderSingleRack();
+            } else {
+                // 個別側を完全に空にする（ID重複を避ける）
+                rackAreas.innerHTML = '';
+                rackAreas.style.display = 'none';
+                
+                multiView.classList.add('active');
+                renderAllRacks();
+            }
+        }
+        
+        // 単一ラックを描画
+        function renderSingleRack() {
+            const container = document.getElementById('rackAreasContainer');
+            container.innerHTML = '';
+            
+            const rackArea = createRackArea(racks[currentRackIndex], currentRackIndex, false);
+            container.appendChild(rackArea);
+        }
+        
+        // 全ラックを描画
+        function renderAllRacks() {
+            const container = document.getElementById('multiRackContainer');
+            container.innerHTML = '';
+            
+            racks.forEach((rack, index) => {
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'mini-rack-wrapper';
+                
+                const rackElement = createRackElement(rack, index, true);
+                wrapperDiv.appendChild(rackElement);
+                container.appendChild(wrapperDiv);
+            });
+        }
+        
+        // ラックエリアを作成
+        function createRackArea(rack, rackIndex, isMini) {
+            const rackArea = document.createElement('div');
+            rackArea.className = 'rack-area';
+            rackArea.dataset.rackIndex = rackIndex;
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'rack-wrapper';
+            
+            const rackElement = createRackElement(rack, rackIndex, isMini);
+            wrapper.appendChild(rackElement);
+            
+            if (!isMini) {
+                const powerColumn = document.createElement('div');
+                powerColumn.className = 'power-column';
+                powerColumn.id = `powerColumn-${rackIndex}`;
+                wrapper.appendChild(powerColumn);
+            }
+            
+            rackArea.appendChild(wrapper);
+            return rackArea;
+        }
+        
+        // ラック要素を作成（ID接頭辞を追加）
+        function createRackElement(rack, rackIndex, isMini) {
+            const container = document.createElement('div');
+            container.className = 'rack-container';
+            
+            if (isMini) {
+                const label = document.createElement('div');
+                label.className = 'rack-label';
+                label.textContent = rack.name;
+                container.appendChild(label);
+            }
+            
+            const info = document.createElement('div');
+            info.className = 'rack-info';
+            info.textContent = `19インチ ${rack.height}U ラック`;
+            container.appendChild(info);
+            
+            const frame = document.createElement('div');
+            frame.className = 'rack-frame';
+            
+            const inner = document.createElement('div');
+            inner.className = 'rack-inner';
+            
+            // ID接頭辞を追加してID重複を完全に防ぐ
+            const prefix = isMini ? 'mini' : 'single';
+            inner.innerHTML = `
+                <div class="rack-posts left"></div>
+                <div class="rack-posts right"></div>
+                <div class="mounting-holes"></div>
+                <div class="rack-units-container" id="${prefix}-rack-${rackIndex}"></div>
+            `;
+            
+            frame.appendChild(inner);
+            container.appendChild(frame);
+            
+            const powerTotal = document.createElement('div');
+            powerTotal.className = 'power-total-container';
+            powerTotal.id = `${prefix}-powerTotal-${rackIndex}`;
+            powerTotal.textContent = '合計: 0 W';
+            // ミニ表示では電力バッジを非表示にする
+            if (isMini) {
+                powerTotal.style.display = 'none';
+            }
+            container.appendChild(powerTotal);
+            
+            // ラックをレンダリング
+            setTimeout(() => {
+                renderRack(rack, rackIndex, isMini);
+            }, 0);
+            
+            return container;
+        }
+        
+        // ラックを描画（ID接頭辞対応）
+        function renderRack(rack, rackIndex, isMini) {
+            const prefix = isMini ? 'mini' : 'single';
+            const rackElement = document.getElementById(`${prefix}-rack-${rackIndex}`);
+            if (!rackElement) return;
+            
+            rackElement.innerHTML = '';
+            
+            const powerColumn = !isMini ? document.getElementById(`powerColumn-${rackIndex}`) : null;
+            if (powerColumn) {
+                powerColumn.innerHTML = '';
+                powerColumn.style.paddingTop = '28px';
+            }
+            
+            // ユニットを作成
+            for (let i = rack.height; i >= 1; i--) {
+                const unit = document.createElement('div');
+                unit.className = 'rack-unit';
+                unit.dataset.unit = i;
+                unit.dataset.rackIndex = rackIndex;
+                
+                const unitNumber = document.createElement('span');
+                unitNumber.className = 'unit-number';
+                unitNumber.textContent = `${i}U`;
+                unit.appendChild(unitNumber);
+                
+                const unitSpace = document.createElement('div');
+                unitSpace.className = 'unit-space';
+                unitSpace.dataset.unit = i;
+                unitSpace.dataset.rackIndex = rackIndex;
+                
+                // 一覧表示でもドラッグ&ドロップを有効にする
+                unitSpace.addEventListener('dragover', handleDragOver);
+                unitSpace.addEventListener('drop', handleDrop);
+                unitSpace.addEventListener('dragleave', handleDragLeave);
+                
+                const equipment = getEquipmentAtUnit(rack, i);
+                if (!equipment) {
+                    unitSpace.textContent = '空き';
+                } else {
+                    unitSpace.classList.add('occupied');
+                }
+                
+                unit.appendChild(unitSpace);
+                rackElement.appendChild(unit);
+                
+                if (powerColumn) {
+                    const powerRow = document.createElement('div');
+                    powerRow.className = 'power-input-item';
+                    powerRow.dataset.unit = i;
+                    powerColumn.appendChild(powerRow);
+                }
+            }
+            
+            renderEquipments(rack, rackIndex, isMini);
+            renderMountingHoles(rack, rackIndex, isMini);
+        }
+        
+        // マウントホールを描画（ID接頭辞対応）
+        function renderMountingHoles(rack, rackIndex, isMini) {
+            const prefix = isMini ? 'mini' : 'single';
+            const rackElement = document.getElementById(`${prefix}-rack-${rackIndex}`);
+            if (!rackElement) return;
+            
+            const mountingHoles = rackElement.parentElement.querySelector('.mounting-holes');
+            if (!mountingHoles) return;
+            
+            mountingHoles.innerHTML = '';
+            
+            for (let i = 0; i < rack.height; i++) {
+                const holeSet = document.createElement('div');
+                holeSet.style.position = 'absolute';
+                holeSet.style.top = `${i * UNIT_HEIGHT + 8}px`;
+                holeSet.style.width = '100%';
+                holeSet.style.height = `${UNIT_HEIGHT}px`;
+                
+                for (let j = 0; j < 2; j++) {
+                    ['5px', null].forEach(side => {
+                        const hole = document.createElement('div');
+                        hole.style.position = 'absolute';
+                        hole.style[side ? 'left' : 'right'] = '5px';
+                        hole.style.top = `${6 + j * 8}px`;
+                        hole.style.width = '2px';
+                        hole.style.height = '5px';
+                        hole.style.background = '#000';
+                        hole.style.borderRadius = '1px';
+                        holeSet.appendChild(hole);
+                    });
+                }
+                
+                mountingHoles.appendChild(holeSet);
+            }
+        }
+        
+        // 機器を描画（ID接頭辞対応）
+        function renderEquipments(rack, rackIndex, isMini) {
+            const prefix = isMini ? 'mini' : 'single';
+            const rackElement = document.getElementById(`${prefix}-rack-${rackIndex}`);
+            const powerColumn = !isMini ? document.getElementById(`powerColumn-${rackIndex}`) : null;
+            
+            if (powerColumn) {
+                powerColumn.querySelectorAll('.power-input-container').forEach(el => el.remove());
+            }
+            
+            rack.equipment.forEach(equipment => {
+                const startUnit = equipment.startUnit;
+                const endUnit = startUnit + equipment.size - 1;
+                
+                const topPosition = (rack.height - endUnit) * UNIT_HEIGHT;
+                const height = equipment.size * UNIT_HEIGHT - 1;
+                
+                const equipmentDiv = document.createElement('div');
+                equipmentDiv.className = `equipment type-${equipment.type}`;
+                if (!settings.colorCoding) {
+                    equipmentDiv.classList.add('no-color');
+                } else if (settings.typeColors[equipment.type]) {
+                    const color = settings.typeColors[equipment.type];
+                    equipmentDiv.style.background = `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`;
+                }
+                
+                equipmentDiv.style.top = `${topPosition}px`;
+                equipmentDiv.style.height = `${height}px`;
+                equipmentDiv.dataset.id = equipment.id;
+                equipmentDiv.dataset.rackIndex = rackIndex;
+                
+                // 一覧表示でもドラッグを有効にする
+                equipmentDiv.draggable = true;
+                equipmentDiv.addEventListener('dragstart', handleDragStart);
+                equipmentDiv.addEventListener('dragend', handleDragEnd);
+                
+                if (!isMini) {
+                    equipmentDiv.addEventListener('dblclick', () => openEditModal(equipment.id, rackIndex));
+                }
+                
+                equipmentDiv.innerHTML = `
+                    <div class="equipment-info">
+                        <div class="equipment-name">${equipment.name}</div>
+                        <div class="equipment-size">${equipment.size}U</div>
+                    </div>
+                    ${!isMini ? `<button class="delete-btn" onclick="deleteEquipment(${equipment.id}, ${rackIndex})">削除</button>` : ''}
+                `;
+                
+                rackElement.appendChild(equipmentDiv);
+                
+                // ユニットスペースを占有状態に
+                for (let i = startUnit; i <= endUnit; i++) {
+                    const unitSpace = rackElement.querySelector(`.unit-space[data-unit="${i}"]`);
+                    if (unitSpace) {
+                        unitSpace.classList.add('occupied');
+                        unitSpace.textContent = '';
+                    }
+                }
+                
+                // 電力入力を追加
+                if (powerColumn) {
+                    const middleUnit = Math.floor((startUnit + endUnit) / 2);
+                    const powerRow = powerColumn.querySelector(`.power-input-item[data-unit="${middleUnit}"]`);
+                    
+                    if (powerRow) {
+                        const powerInputContainer = document.createElement('div');
+                        powerInputContainer.className = 'power-input-container';
+                        powerInputContainer.innerHTML = `
+                            <input type="number" 
+                                   value="${equipment.power || 0}" 
+                                   onchange="updatePower(${equipment.id}, ${rackIndex}, this.value)"
+                                   placeholder="0">
+                            <span>W</span>
+                        `;
+                        powerRow.appendChild(powerInputContainer);
+                    }
+                }
+            });
+            
+            updateRackPower(rackIndex, isMini);
+        }
+        
+        // 機器を追加
+        function addEquipment() {
+            const rack = racks[currentRackIndex];
+            const type = document.getElementById('equipmentType').value;
+            let size = document.getElementById('equipmentSize').value;
+            
+            if (size === 'custom') {
+                size = parseInt(document.getElementById('customSize').value);
+                if (!size || size < 1) {
+                    alert('カスタムサイズを入力してください');
+                    return;
+                }
+            } else {
+                size = parseInt(size);
+            }
+            
+            const name = document.getElementById('equipmentName').value || getDefaultName(type);
+            const startUnit = parseInt(document.getElementById('startUnit').value);
+            
+            if ((type === 'lcd' || type === 'router') && size > 1) {
+                alert('LCDコンソールとルーターは1Uサイズのみです');
+                return;
+            }
+            
+            if (startUnit < 1 || startUnit + size - 1 > rack.height) {
+                alert('指定した位置に機器を配置できません');
+                return;
+            }
+            
+            for (let i = startUnit; i < startUnit + size; i++) {
+                if (getEquipmentAtUnit(rack, i)) {
+                    alert('指定した位置に既に機器が存在します');
+                    return;
+                }
+            }
+            
+            rack.equipment.push({
+                id: Date.now(),
+                type: type,
+                size: size,
+                name: name,
+                startUnit: startUnit,
+                power: 0
+            });
+            
+            if (viewMode === 'single') {
+                renderSingleRack();
+            } else {
+                renderAllRacks();
+            }
+            updateEquipmentList();
+            updateTotalSystemPower();
+        }
+        
+// Excel出力（完全修正版）
+async function exportToExcel() {
+    try {
+        if (typeof ExcelJS === 'undefined') {
+            alert('Excel出力ライブラリが読み込まれていません。ページを再読み込みしてください。');
+            return;
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        
+        // 各ラックごとにシートを作成
+        racks.forEach((rack, rackIndex) => {
+            const worksheet = workbook.addWorksheet(rack.name);
+            
+            // タイトル行
+            worksheet.mergeCells('A1:I1');
+            const titleCell = worksheet.getCell('A1');
+            titleCell.value = `${rack.name} - 19インチ ${rack.height}U サーバーラック搭載図`;
+            titleCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 14 };
+            titleCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF2C3E50' }
+            };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            titleCell.border = {
+                top: {style:'medium'},
+                left: {style:'medium'},
+                bottom: {style:'medium'},
+                right: {style:'medium'}
+            };
+            
+            // 空行
+            worksheet.addRow([]);
+            
+            // ヘッダー行
+            const headerRow = worksheet.addRow(['U番号', '', 'ラック内部', '', '', '', '消費電力(W)', '機器タイプ', '機器名']);
+            worksheet.mergeCells(3, 3, 3, 5);
+            
+            // ヘッダーのスタイル設定
+            for (let col = 1; col <= 9; col++) {
+                const cell = worksheet.getCell(3, col);
+                
+                if (col === 1) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE0E0E0' }
+                    };
+                    cell.font = { bold: true, size: 10 };
+                } else if (col === 2 || col === 6) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF4A4A4A' }
+                    };
+                } else if (col === 3) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF1A1A1A' }
+                    };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+                } else if (col === 7) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFF3CD' }
+                    };
+                    cell.font = { bold: true, size: 10 };
+                } else if (col === 8) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE3F2FD' }
+                    };
+                    cell.font = { bold: true, size: 10 };
+                } else if (col === 9) {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFE8F5E9' }
+                    };
+                    cell.font = { bold: true, size: 10 };
+                }
+                
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = {
+                    top: {style:'medium'},
+                    left: {style:'thin'},
+                    bottom: {style:'medium'},
+                    right: {style:'thin'}
+                };
+            }
+            
+            // 空行の数を計算（底辺を揃えるため）
+            const emptyRowsCount = MAX_RACK_HEIGHT_FOR_EXCEL - rack.height;
+            
+            // 上部の空行を追加
+            for (let i = 0; i < emptyRowsCount; i++) {
+                const emptyRow = worksheet.addRow(['', '', '', '', '', '', '', '', '']);
+                const rowNumber = worksheet.rowCount;
+                
+                // 空行のスタイル（グレーアウト）
+                worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
+                for (let col = 1; col <= 9; col++) {
+                    const cell = worksheet.getCell(rowNumber, col);
+                    if (col === 2 || col === 6) {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FF3A3A3A' }
+                        };
+                    } else if (col === 3) {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFE0E0E0' }
+                        };
+                    }
+                }
+            }
+            
+            // 各U位置の占有状態を管理する配列
+            const unitOccupancy = new Array(rack.height + 1).fill(null);
+            
+            // 機器の占有状態をマーク
+            rack.equipment.forEach(eq => {
+                for (let u = eq.startUnit; u < eq.startUnit + eq.size; u++) {
+                    unitOccupancy[u] = eq;
+                }
+            });
+            
+            // 各Uごとの行を生成（上から下へ）- 修正版
+            let u = rack.height;
+            while (u >= 1) {
+                const equipment = unitOccupancy[u];
+                
+                // 機器の最上部のUnitの場合
+                if (equipment && u === equipment.startUnit + equipment.size - 1) {
+                    const startRow = worksheet.rowCount + 1;
+                    
+                    // 機器のサイズ分の行を先に作成
+                    for (let i = 0; i < equipment.size; i++) {
+                        const currentU = u - i;
+                        worksheet.addRow([`${currentU}U`, '', '', '', '', '', '', '', '']);
+                    }
+                    
+                    const endRow = startRow + equipment.size - 1;
+                    
+                    // セルの結合
+                    worksheet.mergeCells(startRow, 3, endRow, 5); // ラック内部
+                    worksheet.mergeCells(startRow, 7, endRow, 7); // 消費電力
+                    worksheet.mergeCells(startRow, 8, endRow, 8); // 機器タイプ
+                    worksheet.mergeCells(startRow, 9, endRow, 9); // 機器名
+                    
+                    // 各行のU番号とフレームのスタイル設定
+                    for (let rowIdx = startRow; rowIdx <= endRow; rowIdx++) {
+                        // U番号のスタイル
+                        const uCell = worksheet.getCell(rowIdx, 1);
+                        uCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFF0F0F0' }
+                        };
+                        uCell.font = { bold: true, size: 9 };
+                        uCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        uCell.border = {
+                            top: {style:'thin'},
+                            left: {style:'medium'},
+                            bottom: {style:'thin'},
+                            right: {style:'thin'}
+                        };
+                        
+                        // フレーム列のスタイル
+                        [2, 6].forEach(col => {
+                            const frameCell = worksheet.getCell(rowIdx, col);
+                            frameCell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FF3A3A3A' }
+                            };
+                            frameCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                        });
+                    }
+                    
+                    // 機器データを設定
+                    const equipmentCell = worksheet.getCell(startRow, 3);
+                    equipmentCell.value = `${equipment.name} (${equipment.size}U)`;
+                    
+                    // 機器タイプに応じた色を設定
+                    const color = getEquipmentColorARGB(equipment.type);
+                    equipmentCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: color }
+                    };
+                    equipmentCell.font = { 
+                        bold: true, 
+                        color: { argb: 'FFFFFFFF' },
+                        size: 10
+                    };
+                    equipmentCell.alignment = { 
+                        horizontal: 'center', 
+                        vertical: 'middle',
+                        wrapText: true 
+                    };
+                    equipmentCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
+                    };
+                    
+                    // 消費電力
+                    const powerCell = worksheet.getCell(startRow, 7);
+                    powerCell.value = equipment.power || 0;
+                    powerCell.font = { 
+                        bold: true,
+                        color: { argb: 'FFE74C3C' }
+                    };
+                    powerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    powerCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'thin'},
+                        bottom: {style:'medium'},
+                        right: {style:'thin'}
+                    };
+                    
+                    // 機器タイプ
+                    const typeCell = worksheet.getCell(startRow, 8);
+                    typeCell.value = getTypeDisplayName(equipment.type);
+                    typeCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    typeCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'thin'},
+                        bottom: {style:'medium'},
+                        right: {style:'thin'}
+                    };
+                    
+                    // 機器名
+                    const nameCell = worksheet.getCell(startRow, 9);
+                    nameCell.value = equipment.name;
+                    nameCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    nameCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'thin'},
+                        bottom: {style:'medium'},
+                        right: {style:'thin'}
+                    };
+                    
+                    // 機器のサイズ分だけUをスキップ
+                    u -= equipment.size;
+                    
+                } else if (!equipment) {
+                    // 空きスロット
+                    const row = worksheet.addRow([`${u}U`, '', '', '', '', '', '-', '-', '-']);
+                    const rowNumber = row.number;
+                    
+                    // U番号のスタイル
+                    const uCell = worksheet.getCell(rowNumber, 1);
+                    uCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFF0F0F0' }
+                    };
+                    uCell.font = { bold: true, size: 9 };
+                    uCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    uCell.border = {
+                        top: {style:'thin'},
+                        left: {style:'medium'},
+                        bottom: {style:'thin'},
+                        right: {style:'thin'}
+                    };
+                    
+                    // フレーム列のスタイル
+                    [2, 6].forEach(col => {
+                        const frameCell = worksheet.getCell(rowNumber, col);
+                        frameCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FF3A3A3A' }
+                        };
+                        frameCell.border = {
+                            top: {style:'thin'},
+                            left: {style:'thin'},
+                            bottom: {style:'thin'},
+                            right: {style:'thin'}
+                        };
+                    });
+                    
+                    // 空きスロット（3-5列を結合）
+                    worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
+                    const emptyCell = worksheet.getCell(rowNumber, 3);
+                    emptyCell.value = '【 空き 】';
+                    emptyCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF0F0F0F' }
+                    };
+                    emptyCell.font = { 
+                        color: { argb: 'FF666666' },
+                        size: 9
+                    };
+                    emptyCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    emptyCell.border = {
+                        top: {style:'thin', color: {argb: 'FF2A2A2A'}},
+                        left: {style:'thin'},
+                        bottom: {style:'thin', color: {argb: 'FF2A2A2A'}},
+                        right: {style:'thin'}
+                    };
+                    
+                    // 他の列のスタイル
+                    for (let col = 7; col <= 9; col++) {
+                        const cell = worksheet.getCell(rowNumber, col);
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.border = {
+                            top: {style:'thin'},
+                            left: {style:'thin'},
+                            bottom: {style:'thin'},
+                            right: {style:'thin'}
+                        };
+                    }
+                    
+                    u--;
+                } else {
+                    // 機器の中間部分なのでスキップ
+                    u--;
+                }
+            }
+            
+            // 下部フレーム
+            const bottomFrameRow = worksheet.addRow(['', '', '', '', '', '', '', '', '']);
+            const bottomRowNumber = worksheet.rowCount;
+            worksheet.mergeCells(bottomRowNumber, 1, bottomRowNumber, 6);
+            const bottomCell = worksheet.getCell(bottomRowNumber, 1);
+            bottomCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF2A2A2A' }
+            };
+            bottomCell.border = {
+                top: {style:'medium'},
+                left: {style:'medium'},
+                bottom: {style:'medium'},
+                right: {style:'medium'}
+            };
+            
+            // 空行
+            worksheet.addRow([]);
+            
+            // 合計行
+            const totalPower = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
+            const totalRow = worksheet.addRow(['', '合計消費電力', '', '', '', '', totalPower, 'W', '']);
+            const totalRowNumber = worksheet.rowCount;
+            
+            worksheet.mergeCells(totalRowNumber, 2, totalRowNumber, 6);
+            
+            const totalLabelCell = worksheet.getCell(totalRowNumber, 2);
+            totalLabelCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFEB3B' }
+            };
+            totalLabelCell.font = { bold: true, color: { argb: 'FF000000' }, size: 12 };
+            totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            totalLabelCell.border = {
+                top: {style:'medium'},
+                left: {style:'medium'},
+                bottom: {style:'medium'},
+                right: {style:'medium'}
+            };
+            
+            const totalValueCell = worksheet.getCell(totalRowNumber, 7);
+            totalValueCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFEB3B' }
+            };
+            totalValueCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 14 };
+            totalValueCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            totalValueCell.border = {
+                top: {style:'medium'},
+                left: {style:'medium'},
+                bottom: {style:'medium'},
+                right: {style:'medium'}
+            };
+            
+            const totalUnitCell = worksheet.getCell(totalRowNumber, 8);
+            totalUnitCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFEB3B' }
+            };
+            totalUnitCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 12 };
+            totalUnitCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            totalUnitCell.border = {
+                top: {style:'medium'},
+                left: {style:'medium'},
+                bottom: {style:'medium'},
+                right: {style:'medium'}
+            };
+            
+            // 列幅の設定
+            worksheet.columns = [
+                { width: 8 },   // U番号
+                { width: 2 },   // フレーム左
+                { width: 15 },  // ラック内部1
+                { width: 15 },  // ラック内部2
+                { width: 15 },  // ラック内部3
+                { width: 2 },   // フレーム右
+                { width: 12 },  // 消費電力
+                { width: 15 },  // 機器タイプ
+                { width: 25 }   // 機器名
+            ];
+            
+            // 行の高さ設定
+            worksheet.getRow(1).height = 30;
+            worksheet.getRow(3).height = 25;
+            // 全データ行の高さを統一
+            for (let i = 4; i <= worksheet.rowCount - 2; i++) {
+                const row = worksheet.getRow(i);
+                if (row) {
+                    row.height = 20;
+                }
+            }
+        });
+        
+        // サマリーシートを追加
+        const summarySheet = workbook.addWorksheet('サマリー', { position: 0 });
+        
+        // タイトル
+        summarySheet.mergeCells('A1:E1');
+        const summaryTitle = summarySheet.getCell('A1');
+        summaryTitle.value = 'サーバーラック搭載図 サマリー';
+        summaryTitle.font = { bold: true, size: 16, color: { argb: 'FF2C3E50' } };
+        summaryTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+        summaryTitle.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE8F5E9' }
+        };
+        
+        summarySheet.addRow([]);
+        summarySheet.addRow(['作成日時:', new Date().toLocaleString('ja-JP')]);
+        summarySheet.addRow([]);
+        
+        // ヘッダー
+        const summaryHeader = summarySheet.addRow(['No.', 'ラック名', '高さ(U)', '搭載機器数', '消費電力(W)']);
+        summaryHeader.font = { bold: true };
+        summaryHeader.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4A90E2' }
+        };
+        summaryHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        
+        let totalSystemPower = 0;
+        let totalEquipmentCount = 0;
+        
+        // 各ラックの情報
+        racks.forEach((rack, index) => {
+            const power = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
+            totalSystemPower += power;
+            totalEquipmentCount += rack.equipment.length;
+            
+            const row = summarySheet.addRow([
+                index + 1,
+                rack.name,
+                rack.height,
+                rack.equipment.length,
+                power
+            ]);
+            
+            // 交互に背景色を設定
+            if (index % 2 === 0) {
+                row.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFF5F5F5' }
+                };
+            }
+        });
+        
+        summarySheet.addRow([]);
+        
+        // 合計行
+        const totalRow = summarySheet.addRow(['', '合計', '', totalEquipmentCount, totalSystemPower]);
+        totalRow.font = { bold: true, size: 12 };
+        totalRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFEB3B' }
+        };
+        
+        // 列幅設定
+        summarySheet.columns = [
+            { width: 8 },   // No.
+            { width: 25 },  // ラック名
+            { width: 12 },  // 高さ
+            { width: 15 },  // 搭載機器数
+            { width: 15 }   // 消費電力
+        ];
+        
+        // 枠線を追加
+        const lastRow = summarySheet.lastRow.number;
+        for (let row = 1; row <= lastRow; row++) {
+            for (let col = 1; col <= 5; col++) {
+                const cell = summarySheet.getCell(row, col);
+                if (row === 1 || row === 5 || row === lastRow) {
+                    cell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
+                    };
+                } else if (row > 5 && row < lastRow) {
+                    cell.border = {
+                        top: {style:'thin'},
+                        left: {style:'thin'},
+                        bottom: {style:'thin'},
+                        right: {style:'thin'}
+                    };
+                }
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            }
+        }
+        
+        // Excelファイルとして保存
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { 
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rack_diagram_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('Excel出力完了');
+        
+    } catch (error) {
+        console.error('Excel出力エラー:', error);
+        alert('Excel出力中にエラーが発生しました。\n' + error.message);
+    }
+}
+
+        
+        // 機器タイプの色を取得する関数（ARGB形式）
+        function getEquipmentColorARGB(type) {
+            const defaultColors = {
+                nas: 'FFF093FB',
+                sv: 'FF4FACFE',
+                ups: 'FF43E97B',
+                switch: 'FFFA709A',
+                lcd: 'FF30CFD0',
+                router: 'FFA8EDEA'
+            };
+            
+            // カスタムタイプの色を取得
+            if (settings.typeColors[type]) {
+                const hex = settings.typeColors[type].replace('#', '');
+                return 'FF' + hex.toUpperCase();
+            }
+            
+            return defaultColors[type] || 'FF667EEA';
+        }
+        
+        // タイプの表示名を取得
+        function getTypeDisplayName(type) {
+            const customType = settings.customTypes.find(t => t.id === type);
+            if (customType) return customType.name;
+            
+            const typeNames = {
+                nas: 'NAS',
+                sv: 'サーバー',
+                ups: 'UPS',
+                switch: 'スイッチ',
+                lcd: 'LCDコンソール',
+                router: 'ルーター'
+            };
+            return typeNames[type] || type;
+        }
+        
+        // メモリに保存
+        function saveToMemory() {
+            document.getElementById('memoryName').value = '';
+            openMemoryModal();
+        }
+        
+        function confirmSaveToMemory() {
+            const name = document.getElementById('memoryName').value;
+            if (!name) {
+                alert('保存名を入力してください');
+                return;
+            }
+            
+            if (savedMemories.length >= MAX_MEMORY_SLOTS) {
+                alert(`最大${MAX_MEMORY_SLOTS}個まで保存できます`);
+                return;
+            }
+            
+            const memory = {
+                id: Date.now(),
+                name: name,
+                date: new Date().toLocaleString('ja-JP'),
+                racks: JSON.parse(JSON.stringify(racks)),
+                settings: JSON.parse(JSON.stringify(settings))
+            };
+            
+            savedMemories.push(memory);
+            saveMemoriesToStorage();
+            updateMemoryList();
+            updateMemoryModalList();
+            closeMemoryModal();
+            alert('保存しました');
+        }
+        
+        // メモリから読み込み
+        function loadFromMemory(memoryId) {
+            const memory = savedMemories.find(m => m.id === memoryId);
+            if (!memory) return;
+            
+            if (confirm(`「${memory.name}」を読み込みますか？\n現在の構成は失われます。`)) {
+                racks = JSON.parse(JSON.stringify(memory.racks));
+                settings = JSON.parse(JSON.stringify(memory.settings));
+                currentRackIndex = 0;
+                
+                saveSettings();
+                updateRackTabs();
+                switchToRack(0);
+                alert('読み込みました');
+            }
+        }
+        
+        // メモリを削除
+        function deleteMemory(memoryId) {
+            const memory = savedMemories.find(m => m.id === memoryId);
+            if (!memory) return;
+            
+            if (confirm(`「${memory.name}」を削除しますか？`)) {
+                savedMemories = savedMemories.filter(m => m.id !== memoryId);
+                saveMemoriesToStorage();
+                updateMemoryList();
+                updateMemoryModalList();
+            }
+        }
+        
+        // メモリリストを更新
+        function updateMemoryList() {
+            const list = document.getElementById('memoryList');
+            
+            if (savedMemories.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #999; font-size: 12px; padding: 20px;">保存されたデータはありません</div>';
+                return;
+            }
+            
+            list.innerHTML = savedMemories.map(memory => {
+                const totalEquipment = memory.racks.reduce((sum, rack) => sum + rack.equipment.length, 0);
+                return `
+                    <div class="memory-item">
+                        <div class="memory-item-info">
+                            <div class="memory-item-name">${memory.name}</div>
+                            <div class="memory-item-details">
+                                ${memory.date} | ${memory.racks.length}ラック | ${totalEquipment}機器
+                            </div>
+                        </div>
+                        <div class="memory-item-actions">
+                            <button class="memory-btn memory-btn-load" onclick="loadFromMemory(${memory.id})">読込</button>
+                            <button class="memory-btn memory-btn-delete" onclick="deleteMemory(${memory.id})">削除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // メモリモーダルのリストを更新
+        function updateMemoryModalList() {
+            const list = document.getElementById('memoryModalList');
+            
+            if (savedMemories.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #999; font-size: 12px; padding: 20px;">保存されたデータはありません</div>';
+                return;
+            }
+            
+            list.innerHTML = savedMemories.map(memory => {
+                const totalEquipment = memory.racks.reduce((sum, rack) => sum + rack.equipment.length, 0);
+                return `
+                    <div class="memory-item">
+                        <div class="memory-item-info">
+                            <div class="memory-item-name">${memory.name}</div>
+                            <div class="memory-item-details">
+                                ${memory.date} | ${memory.racks.length}ラック | ${totalEquipment}機器
+                            </div>
+                        </div>
+                        <div class="memory-item-actions">
+                            <button class="memory-btn memory-btn-load" onclick="loadFromMemory(${memory.id}); closeMemoryModal();">読込</button>
+                            <button class="memory-btn memory-btn-delete" onclick="deleteMemory(${memory.id})">削除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ストレージに保存
+        function saveMemoriesToStorage() {
+            localStorage.setItem('rackMemories', JSON.stringify(savedMemories));
+        }
+        
+        // ストレージから読み込み
+        function loadMemories() {
+            const saved = localStorage.getItem('rackMemories');
+            if (saved) {
+                savedMemories = JSON.parse(saved);
+            }
+        }
+        
+        // メモリモーダルを開く
+        function openMemoryModal() {
+            updateMemoryModalList();
+            document.getElementById('memoryModal').style.display = 'block';
+        }
+        
+        // メモリモーダルを閉じる
+        function closeMemoryModal() {
+            document.getElementById('memoryModal').style.display = 'none';
+        }
+        
+        // 全システムの消費電力を更新
+        function updateTotalSystemPower() {
+            const total = racks.reduce((sum, rack) => {
+                return sum + rack.equipment.reduce((rackSum, eq) => rackSum + (eq.power || 0), 0);
+            }, 0);
+            
+            document.getElementById('totalSystemPower').textContent = `${total} W`;
+        }
+        
+        // ラックの消費電力を更新（ID接頭辞対応）
+        function updateRackPower(rackIndex, isMini) {
+            const rack = racks[rackIndex];
+            const total = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
+            
+            const prefix = isMini ? 'mini' : 'single';
+            const powerTotalElement = document.getElementById(`${prefix}-powerTotal-${rackIndex}`);
+            if (powerTotalElement) {
+                powerTotalElement.textContent = `合計: ${total} W`;
+            }
+            
+            updateTotalSystemPower();
+        }
+        
+        // 機器の電力を更新
+        function updatePower(equipmentId, rackIndex, value) {
+            const rack = racks[rackIndex];
+            const equipment = rack.equipment.find(eq => eq.id === equipmentId);
+            if (equipment) {
+                equipment.power = parseFloat(value) || 0;
+                updateRackPower(rackIndex, viewMode === 'all');
+                updateEquipmentList();
+            }
+        }
+        
+        // 機器を削除
+        function deleteEquipment(equipmentId, rackIndex) {
+            const rack = racks[rackIndex];
+            rack.equipment = rack.equipment.filter(eq => eq.id !== equipmentId);
+            
+            if (viewMode === 'single' && rackIndex === currentRackIndex) {
+                renderSingleRack();
+            } else if (viewMode === 'all') {
+                renderAllRacks();
+            }
+            
+            updateEquipmentList();
+            updateTotalSystemPower();
+        }
+        
+        // 現在のラックをクリア
+        function clearCurrentRack() {
+            if (confirm('現在のラックのすべての機器を削除しますか？')) {
+                racks[currentRackIndex].equipment = [];
+                
+                if (viewMode === 'single') {
+                    renderSingleRack();
+                } else {
+                    renderAllRacks();
+                }
+                
+                updateEquipmentList();
+                updateTotalSystemPower();
+            }
+        }
+        
+        // 機器リストを更新
+        function updateEquipmentList() {
+            const listContent = document.getElementById('equipmentListContent');
+            const rack = racks[currentRackIndex];
+            
+            if (rack.equipment.length === 0) {
+                listContent.innerHTML = '<div style="color: #999; font-size: 12px;">機器がありません</div>';
+                return;
+            }
+            
+            listContent.innerHTML = rack.equipment
+                .sort((a, b) => b.startUnit - a.startUnit)
+                .map(eq => `
+                    <div class="equipment-list-item">
+                        <span>${eq.name} (${eq.startUnit}U-${eq.startUnit + eq.size - 1}U)</span>
+                        <span class="equipment-list-power">${eq.power || 0}W</span>
+                    </div>
+                `).join('');
+        }
+        
+        // ユニットの機器を取得
+        function getEquipmentAtUnit(rack, unit) {
+            return rack.equipment.find(eq => unit >= eq.startUnit && unit < eq.startUnit + eq.size);
+        }
+        
+        // デフォルト名を取得
+        function getDefaultName(type) {
+            const customType = settings.customTypes.find(t => t.id === type);
+            if (customType) return customType.name;
+            
+            const names = {
+                nas: 'NAS',
+                sv: 'Server',
+                ups: 'UPS',
+                switch: 'Switch',
+                lcd: 'LCD Console',
+                router: 'Router'
+            };
+            return names[type] || 'Equipment';
+        }
+        
+        // ドラッグ&ドロップ処理
+        function handleDragStart(e) {
+            const equipmentId = parseInt(e.target.dataset.id);
+            const rackIndex = parseInt(e.target.dataset.rackIndex);
+            const rack = racks[rackIndex];
+            
+            draggedEquipment = rack.equipment.find(eq => eq.id === equipmentId);
+            draggedFromRack = rackIndex;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.unit-space').forEach(unit => {
+                unit.classList.remove('drag-over');
+            });
+            draggedEquipment = null;
+            draggedFromRack = null;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const unit = parseInt(e.target.dataset.unit);
+            const rackIndex = parseInt(e.target.dataset.rackIndex);
+            const rack = racks[rackIndex];
+            
+            if (!draggedEquipment) return;
+            
+            let canPlace = true;
+            for (let i = unit; i < unit + draggedEquipment.size; i++) {
+                if (i > rack.height) {
+                    canPlace = false;
+                    break;
+                }
+                const existing = getEquipmentAtUnit(rack, i);
+                if (existing && (draggedFromRack !== rackIndex || existing.id !== draggedEquipment.id)) {
+                    canPlace = false;
+                    break;
+                }
+            }
+            
+            if (canPlace) {
+                e.target.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            if (!draggedEquipment) return;
+            
+            const newStartUnit = parseInt(e.target.dataset.unit);
+            const targetRackIndex = parseInt(e.target.dataset.rackIndex);
+            const targetRack = racks[targetRackIndex];
+            
+            let canPlace = true;
+            for (let i = newStartUnit; i < newStartUnit + draggedEquipment.size; i++) {
+                if (i > targetRack.height) {
+                    canPlace = false;
+                    break;
+                }
+                const existing = getEquipmentAtUnit(targetRack, i);
+                if (existing && (draggedFromRack !== targetRackIndex || existing.id !== draggedEquipment.id)) {
+                    canPlace = false;
+                    break;
+                }
+            }
+            
+            if (canPlace) {
+                // 元のラックから削除
+                if (draggedFromRack !== targetRackIndex) {
+                    racks[draggedFromRack].equipment = racks[draggedFromRack].equipment.filter(
+                        eq => eq.id !== draggedEquipment.id
+                    );
+                    // 新しいラックに追加
+                    draggedEquipment.startUnit = newStartUnit;
+                    targetRack.equipment.push(draggedEquipment);
+                } else {
+                    // 同じラック内での移動
+                    const equipment = targetRack.equipment.find(eq => eq.id === draggedEquipment.id);
+                    if (equipment) {
+                        equipment.startUnit = newStartUnit;
+                    }
+                }
+                
+                if (viewMode === 'single') {
+                    renderSingleRack();
+                } else {
+                    renderAllRacks();
+                }
+                updateEquipmentList();
+                updateTotalSystemPower();
+            }
+            
+            draggedEquipment = null;
+            draggedFromRack = null;
+        }
+        
+        // 編集モーダルを開く
+        function openEditModal(equipmentId, rackIndex) {
+            const rack = racks[rackIndex];
+            const equipment = rack.equipment.find(eq => eq.id === equipmentId);
+            if (!equipment) return;
+            
+            editingEquipmentId = equipmentId;
+            editingRackIndex = rackIndex;
+            
+            document.getElementById('editName').value = equipment.name;
+            document.getElementById('editPower').value = equipment.power || 0;
+            
+            if (equipment.size <= 4) {
+                document.getElementById('editSize').value = equipment.size;
+                document.getElementById('editCustomSizeInput').classList.remove('show');
+            } else {
+                document.getElementById('editSize').value = 'custom';
+                document.getElementById('editCustomSize').value = equipment.size;
+                document.getElementById('editCustomSizeInput').classList.add('show');
+            }
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+        
+        // 編集モーダルを閉じる
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            editingEquipmentId = null;
+            editingRackIndex = null;
+        }
+        
+        // 編集を保存
+        function saveEdit() {
+            if (!editingEquipmentId || editingRackIndex === null) return;
+            
+            const rack = racks[editingRackIndex];
+            const equipment = rack.equipment.find(eq => eq.id === editingEquipmentId);
+            if (!equipment) return;
+            
+            let newSize = document.getElementById('editSize').value;
+            if (newSize === 'custom') {
+                newSize = parseInt(document.getElementById('editCustomSize').value);
+                if (!newSize || newSize < 1) {
+                    alert('カスタムサイズを入力してください');
+                    return;
+                }
+            } else {
+                newSize = parseInt(newSize);
+            }
+            
+            if (newSize !== equipment.size) {
+                for (let i = equipment.startUnit; i < equipment.startUnit + newSize; i++) {
+                    if (i > rack.height) {
+                        alert('機器がラックの範囲を超えます');
+                        return;
+                    }
+                    const existing = getEquipmentAtUnit(rack, i);
+                    if (existing && existing.id !== equipment.id) {
+                        alert('指定したサイズでは他の機器と重複します');
+                        return;
+                    }
+                }
+            }
+            
+            equipment.name = document.getElementById('editName').value || equipment.name;
+            equipment.size = newSize;
+            equipment.power = parseFloat(document.getElementById('editPower').value) || 0;
+            
+            closeEditModal();
+            
+            if (viewMode === 'single') {
+                renderSingleRack();
+            } else {
+                renderAllRacks();
+            }
+            updateEquipmentList();
+            updateTotalSystemPower();
+        }
+        
+        // データのエクスポート
+        function exportData() {
+            const data = {
+                version: '2.0',
+                racks: racks,
+                settings: settings,
+                memories: savedMemories
+            };
+            
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rack_diagram_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // データのインポート
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.version === '1.0') {
+                        // 旧バージョンのデータを変換
+                        racks = [{
+                            id: Date.now(),
+                            name: 'インポートラック',
+                            height: data.rackHeight,
+                            equipment: data.equipment || []
+                        }];
+                        settings = data.settings || settings;
+                    } else if (data.version === '2.0') {
+                        racks = data.racks || [];
+                        settings = data.settings || settings;
+                        savedMemories = data.memories || [];
+                    } else {
+                        alert('非対応のファイル形式です');
+                        return;
+                    }
+                    
+                    currentRackIndex = 0;
+                    saveSettings();
+                    saveMemoriesToStorage();
+                    updateRackTabs();
+                    switchToRack(0);
+                    updateMemoryList();
+                    alert('インポートが完了しました');
+                } catch (error) {
+                    alert('ファイルの読み込みに失敗しました');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        // 設定関連の関数
+        function updateEquipmentTypeSelect() {
+            const select = document.getElementById('equipmentType');
+            
+            Array.from(select.options).forEach(option => {
+                if (option.dataset.custom === 'true') {
+                    option.remove();
+                }
+            });
+            
+            settings.customTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.id;
+                option.textContent = type.name;
+                option.dataset.custom = 'true';
+                select.appendChild(option);
+            });
+        }
+        
+        function openSettingsModal() {
+            document.getElementById('colorCoding').checked = settings.colorCoding;
+            updateCustomTypesList();
+            updateDefaultTypeColors();
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+        
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        
+        function updateCustomTypesList() {
+            const list = document.getElementById('customTypesList');
+            list.innerHTML = settings.customTypes.map(type => `
+                <div class="custom-type-item">
+                    <span>${type.name}</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="custom-type-color" style="background: ${type.color}"></div>
+                        <button class="remove-type-btn" onclick="removeCustomType('${type.id}')">削除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateDefaultTypeColors() {
+            const container = document.getElementById('defaultTypeColors');
+            const types = {
+                nas: 'NAS',
+                sv: 'サーバー',
+                ups: 'UPS',
+                switch: 'スイッチ',
+                lcd: 'LCDコンソール',
+                router: 'ルーター'
+            };
+            
+            container.innerHTML = Object.entries(types).map(([key, name]) => `
+                <div class="color-picker-group">
+                    <label style="width: 100px;">${name}</label>
+                    <input type="color" id="color-${key}" value="${settings.typeColors[key]}" 
+                           onchange="updateTypeColor('${key}', this.value)">
+                </div>
+            `).join('');
+        }
+        
+        function updateTypeColor(type, color) {
+            settings.typeColors[type] = color;
+        }
+        
+        function addCustomType() {
+            const name = document.getElementById('newTypeName').value;
+            const color = document.getElementById('newTypeColor').value;
+            
+            if (!name) {
+                alert('機器タイプ名を入力してください');
+                return;
+            }
+            
+            const customType = {
+                id: 'custom_' + Date.now(),
+                name: name,
+                color: color
+            };
+            
+            settings.customTypes.push(customType);
+            settings.typeColors[customType.id] = color;
+            
+            document.getElementById('newTypeName').value = '';
+            updateCustomTypesList();
+            updateEquipmentTypeSelect();
+        }
+        
+        function removeCustomType(id) {
+            settings.customTypes = settings.customTypes.filter(type => type.id !== id);
+            delete settings.typeColors[id];
+            updateCustomTypesList();
+            updateEquipmentTypeSelect();
+        }
+        
+        function saveSettings() {
+            settings.colorCoding = document.getElementById('colorCoding').checked;
+            localStorage.setItem('rackSettings', JSON.stringify(settings));
+            
+            if (viewMode === 'single') {
+                renderSingleRack();
+            } else {
+                renderAllRacks();
+            }
+            
+            closeSettingsModal();
+        }
+        
+        function loadSettings() {
+            const saved = localStorage.getItem('rackSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+            }
+            updateEquipmentTypeSelect();
+        }
+        
+        // イベントリスナー
+        document.getElementById('equipmentSize').addEventListener('change', (e) => {
+            const customInput = document.getElementById('customSizeInput');
+            if (e.target.value === 'custom') {
+                customInput.classList.add('show');
+            } else {
+                customInput.classList.remove('show');
+            }
+        });
+        
+        document.getElementById('editSize').addEventListener('change', (e) => {
+            const customInput = document.getElementById('editCustomSizeInput');
+            if (e.target.value === 'custom') {
+                customInput.classList.add('show');
+            } else {
+                customInput.classList.remove('show');
+            }
+        });
+        
+        document.getElementById('rackHeight').addEventListener('change', (e) => {
+            const customInput = document.getElementById('customRackHeightInput');
+            if (e.target.value === 'custom') {
+                customInput.classList.add('show');
+            } else {
+                customInput.classList.remove('show');
+                const newHeight = parseInt(e.target.value);
+                const rack = racks[currentRackIndex];
+                
+                if (rack.equipment.length > 0 && !confirm('ラック高さを変更すると、現在の機器配置がクリアされます。続行しますか？')) {
+                    if (rack.height <= 48 && [12, 24, 36, 42, 48].includes(rack.height)) {
+                        e.target.value = rack.height;
+                    } else {
+                        e.target.value = 'custom';
+                        customInput.classList.add('show');
+                    }
+                    return;
+                }
+                
+                rack.height = newHeight;
+                rack.equipment = [];
+                
+                if (viewMode === 'single') {
+                    renderSingleRack();
+                } else {
+                    renderAllRacks();
+                }
+                updateEquipmentList();
+                updateTotalSystemPower();
+            }
+        });
+        
+        document.getElementById('customRackHeight').addEventListener('change', () => {
+            const rack = racks[currentRackIndex];
+            const newHeight = parseInt(document.getElementById('customRackHeight').value);
+            
+            if (!newHeight || newHeight < 1) return;
+            
+            if (rack.equipment.length > 0 && !confirm('ラック高さを変更すると、現在の機器配置がクリアされます。続行しますか？')) {
+                document.getElementById('customRackHeight').value = rack.height;
+                return;
+            }
+            
+            rack.height = newHeight;
+            rack.equipment = [];
+            
+            if (viewMode === 'single') {
+                renderSingleRack();
+            } else {
+                renderAllRacks();
+            }
+            updateEquipmentList();
+            updateTotalSystemPower();
+        });
+        
+        document.getElementById('equipmentType').addEventListener('change', (e) => {
+            const sizeSelect = document.getElementById('equipmentSize');
+            if (e.target.value === 'lcd' || e.target.value === 'router') {
+                sizeSelect.value = '1';
+                sizeSelect.disabled = true;
+                document.getElementById('customSizeInput').classList.remove('show');
+            } else {
+                sizeSelect.disabled = false;
+            }
+        });
+        
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+                editingEquipmentId = null;
+                editingRackIndex = null;
+            }
+        }
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>
