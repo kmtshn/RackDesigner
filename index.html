@@ -955,7 +955,7 @@
                     <h3>現在のラック設定</h3>
                     <div class="form-group">
                         <label for="currentRackName">ラック名</label>
-                        <input type="text" id="currentRackName" placeholder="例: メインラック" onchange="updateCurrentRackName()">
+                        <input type="text" id="currentRackName" placeholder="例: ラック1" onchange="updateCurrentRackName()">
                     </div>
                     <div class="form-group">
                         <label for="rackHeight">ラック高さ (U)</label>
@@ -1182,9 +1182,9 @@
             loadSettings();
             loadMemories();
             
-            // 初期ラックを作成
+            // 初期ラックを作成（ラック1に変更）
             if (racks.length === 0) {
-                racks.push(new Rack('メインラック', 42));
+                racks.push(new Rack('ラック1', 42));
             }
             
             updateRackTabs();
@@ -1504,7 +1504,7 @@
             }
         }
         
-        // 機器を描画（ID接頭辞対応）
+        // 機器を描画（ID接頭辞対応） - 一覧表示でもダブルクリックで編集可能に修正
         function renderEquipments(rack, rackIndex, isMini) {
             const prefix = isMini ? 'mini' : 'single';
             const rackElement = document.getElementById(`${prefix}-rack-${rackIndex}`);
@@ -1540,9 +1540,8 @@
                 equipmentDiv.addEventListener('dragstart', handleDragStart);
                 equipmentDiv.addEventListener('dragend', handleDragEnd);
                 
-                if (!isMini) {
-                    equipmentDiv.addEventListener('dblclick', () => openEditModal(equipment.id, rackIndex));
-                }
+                // 一覧表示でもダブルクリックで編集可能にする
+                equipmentDiv.addEventListener('dblclick', () => openEditModal(equipment.id, rackIndex));
                 
                 equipmentDiv.innerHTML = `
                     <div class="equipment-info">
@@ -1640,187 +1639,135 @@
             updateTotalSystemPower();
         }
         
-// Excel出力（完全修正版）
-async function exportToExcel() {
-    try {
-        if (typeof ExcelJS === 'undefined') {
-            alert('Excel出力ライブラリが読み込まれていません。ページを再読み込みしてください。');
-            return;
-        }
+        // Excel出力（完全修正版 - 罫線と背景色の修正）
+        async function exportToExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') {
+                    alert('Excel出力ライブラリが読み込まれていません。ページを再読み込みしてください。');
+                    return;
+                }
 
-        const workbook = new ExcelJS.Workbook();
-        
-        // 各ラックごとにシートを作成
-        racks.forEach((rack, rackIndex) => {
-            const worksheet = workbook.addWorksheet(rack.name);
-            
-            // タイトル行
-            worksheet.mergeCells('A1:I1');
-            const titleCell = worksheet.getCell('A1');
-            titleCell.value = `${rack.name} - 19インチ ${rack.height}U サーバーラック搭載図`;
-            titleCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 14 };
-            titleCell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF2C3E50' }
-            };
-            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            titleCell.border = {
-                top: {style:'medium'},
-                left: {style:'medium'},
-                bottom: {style:'medium'},
-                right: {style:'medium'}
-            };
-            
-            // 空行
-            worksheet.addRow([]);
-            
-            // ヘッダー行
-            const headerRow = worksheet.addRow(['U番号', '', 'ラック内部', '', '', '', '消費電力(W)', '機器タイプ', '機器名']);
-            worksheet.mergeCells(3, 3, 3, 5);
-            
-            // ヘッダーのスタイル設定
-            for (let col = 1; col <= 9; col++) {
-                const cell = worksheet.getCell(3, col);
+                const workbook = new ExcelJS.Workbook();
                 
-                if (col === 1) {
-                    cell.fill = {
+                // 各ラックごとにシートを作成
+                racks.forEach((rack, rackIndex) => {
+                    const worksheet = workbook.addWorksheet(rack.name);
+                    
+                    // タイトル行
+                    worksheet.mergeCells('A1:I1');
+                    const titleCell = worksheet.getCell('A1');
+                    titleCell.value = `${rack.name} - 19インチ ${rack.height}U サーバーラック搭載図`;
+                    titleCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 14 };
+                    titleCell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FFE0E0E0' }
+                        fgColor: { argb: 'FF2C3E50' }
                     };
-                    cell.font = { bold: true, size: 10 };
-                } else if (col === 2 || col === 6) {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF4A4A4A' }
+                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    titleCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
                     };
-                } else if (col === 3) {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF1A1A1A' }
-                    };
-                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
-                } else if (col === 7) {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFFFF3CD' }
-                    };
-                    cell.font = { bold: true, size: 10 };
-                } else if (col === 8) {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFE3F2FD' }
-                    };
-                    cell.font = { bold: true, size: 10 };
-                } else if (col === 9) {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFE8F5E9' }
-                    };
-                    cell.font = { bold: true, size: 10 };
-                }
-                
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                cell.border = {
-                    top: {style:'medium'},
-                    left: {style:'thin'},
-                    bottom: {style:'medium'},
-                    right: {style:'thin'}
-                };
-            }
-            
-            // 空行の数を計算（底辺を揃えるため）
-            const emptyRowsCount = MAX_RACK_HEIGHT_FOR_EXCEL - rack.height;
-            
-            // 上部の空行を追加
-            for (let i = 0; i < emptyRowsCount; i++) {
-                const emptyRow = worksheet.addRow(['', '', '', '', '', '', '', '', '']);
-                const rowNumber = worksheet.rowCount;
-                
-                // 空行のスタイル（グレーアウト）
-                worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
-                for (let col = 1; col <= 9; col++) {
-                    const cell = worksheet.getCell(rowNumber, col);
-                    if (col === 2 || col === 6) {
-                        cell.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: 'FF3A3A3A' }
-                        };
-                    } else if (col === 3) {
-                        cell.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: 'FFE0E0E0' }
+                    
+                    // 空行
+                    worksheet.addRow([]);
+                    
+                    // ヘッダー行
+                    const headerRow = worksheet.addRow(['U番号', '', 'ラック内部', '', '', '', '消費電力(W)', '機器タイプ', '機器名']);
+                    worksheet.mergeCells(3, 3, 3, 5);
+                    
+                    // ヘッダーのスタイル設定
+                    for (let col = 1; col <= 9; col++) {
+                        const cell = worksheet.getCell(3, col);
+                        
+                        if (col === 1) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFE0E0E0' }
+                            };
+                            cell.font = { bold: true, size: 10 };
+                        } else if (col === 2 || col === 6) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FF4A4A4A' }
+                            };
+                        } else if (col === 3) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FF1A1A1A' }
+                            };
+                            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+                        } else if (col === 7) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFFFF3CD' }
+                            };
+                            cell.font = { bold: true, size: 10 };
+                        } else if (col === 8) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFE3F2FD' }
+                            };
+                            cell.font = { bold: true, size: 10 };
+                        } else if (col === 9) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFE8F5E9' }
+                            };
+                            cell.font = { bold: true, size: 10 };
+                        }
+                        
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.border = {
+                            top: {style:'medium'},
+                            left: {style:'thin'},
+                            bottom: {style:'medium'},
+                            right: {style:'thin'}
                         };
                     }
-                }
-            }
-            
-            // 各U位置の占有状態を管理する配列
-            const unitOccupancy = new Array(rack.height + 1).fill(null);
-            
-            // 機器の占有状態をマーク
-            rack.equipment.forEach(eq => {
-                for (let u = eq.startUnit; u < eq.startUnit + eq.size; u++) {
-                    unitOccupancy[u] = eq;
-                }
-            });
-            
-            // 各Uごとの行を生成（上から下へ）- 修正版
-            let u = rack.height;
-            while (u >= 1) {
-                const equipment = unitOccupancy[u];
-                
-                // 機器の最上部のUnitの場合
-                if (equipment && u === equipment.startUnit + equipment.size - 1) {
-                    const startRow = worksheet.rowCount + 1;
                     
-                    // 機器のサイズ分の行を先に作成
-                    for (let i = 0; i < equipment.size; i++) {
-                        const currentU = u - i;
-                        worksheet.addRow([`${currentU}U`, '', '', '', '', '', '', '', '']);
-                    }
+                    // 上部の空行を追加（48Uまでの差分）
+                    const emptyRowsCount = MAX_RACK_HEIGHT_FOR_EXCEL - rack.height;
                     
-                    const endRow = startRow + equipment.size - 1;
-                    
-                    // セルの結合
-                    worksheet.mergeCells(startRow, 3, endRow, 5); // ラック内部
-                    worksheet.mergeCells(startRow, 7, endRow, 7); // 消費電力
-                    worksheet.mergeCells(startRow, 8, endRow, 8); // 機器タイプ
-                    worksheet.mergeCells(startRow, 9, endRow, 9); // 機器名
-                    
-                    // 各行のU番号とフレームのスタイル設定
-                    for (let rowIdx = startRow; rowIdx <= endRow; rowIdx++) {
-                        // U番号のスタイル
-                        const uCell = worksheet.getCell(rowIdx, 1);
+                    // 上部の空行（統一された色）
+                    for (let i = 0; i < emptyRowsCount; i++) {
+                        const emptyRow = worksheet.addRow(['-', '', '', '', '', '', '-', '-', '-']);
+                        const rowNumber = worksheet.rowCount;
+                        
+                        // 空行のスタイル（統一された色）
+                        worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
+                        
+                        // U番号列
+                        const uCell = worksheet.getCell(rowNumber, 1);
                         uCell.fill = {
                             type: 'pattern',
                             pattern: 'solid',
-                            fgColor: { argb: 'FFF0F0F0' }
+                            fgColor: { argb: 'FFE8E8E8' }
                         };
-                        uCell.font = { bold: true, size: 9 };
+                        uCell.font = { color: { argb: 'FFA0A0A0' }, size: 9 };
                         uCell.alignment = { horizontal: 'center', vertical: 'middle' };
                         uCell.border = {
                             top: {style:'thin'},
-                            left: {style:'medium'},
+                            left: {style:'thin'},
                             bottom: {style:'thin'},
                             right: {style:'thin'}
                         };
                         
-                        // フレーム列のスタイル
+                        // フレーム列（ラックとは異なる色）
                         [2, 6].forEach(col => {
-                            const frameCell = worksheet.getCell(rowIdx, col);
+                            const frameCell = worksheet.getCell(rowNumber, col);
                             frameCell.fill = {
                                 type: 'pattern',
                                 pattern: 'solid',
-                                fgColor: { argb: 'FF3A3A3A' }
+                                fgColor: { argb: 'FFB0B0B0' }
                             };
                             frameCell.border = {
                                 top: {style:'thin'},
@@ -1829,373 +1776,554 @@ async function exportToExcel() {
                                 right: {style:'thin'}
                             };
                         });
-                    }
-                    
-                    // 機器データを設定
-                    const equipmentCell = worksheet.getCell(startRow, 3);
-                    equipmentCell.value = `${equipment.name} (${equipment.size}U)`;
-                    
-                    // 機器タイプに応じた色を設定
-                    const color = getEquipmentColorARGB(equipment.type);
-                    equipmentCell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: color }
-                    };
-                    equipmentCell.font = { 
-                        bold: true, 
-                        color: { argb: 'FFFFFFFF' },
-                        size: 10
-                    };
-                    equipmentCell.alignment = { 
-                        horizontal: 'center', 
-                        vertical: 'middle',
-                        wrapText: true 
-                    };
-                    equipmentCell.border = {
-                        top: {style:'medium'},
-                        left: {style:'medium'},
-                        bottom: {style:'medium'},
-                        right: {style:'medium'}
-                    };
-                    
-                    // 消費電力
-                    const powerCell = worksheet.getCell(startRow, 7);
-                    powerCell.value = equipment.power || 0;
-                    powerCell.font = { 
-                        bold: true,
-                        color: { argb: 'FFE74C3C' }
-                    };
-                    powerCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    powerCell.border = {
-                        top: {style:'medium'},
-                        left: {style:'thin'},
-                        bottom: {style:'medium'},
-                        right: {style:'thin'}
-                    };
-                    
-                    // 機器タイプ
-                    const typeCell = worksheet.getCell(startRow, 8);
-                    typeCell.value = getTypeDisplayName(equipment.type);
-                    typeCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    typeCell.border = {
-                        top: {style:'medium'},
-                        left: {style:'thin'},
-                        bottom: {style:'medium'},
-                        right: {style:'thin'}
-                    };
-                    
-                    // 機器名
-                    const nameCell = worksheet.getCell(startRow, 9);
-                    nameCell.value = equipment.name;
-                    nameCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    nameCell.border = {
-                        top: {style:'medium'},
-                        left: {style:'thin'},
-                        bottom: {style:'medium'},
-                        right: {style:'thin'}
-                    };
-                    
-                    // 機器のサイズ分だけUをスキップ
-                    u -= equipment.size;
-                    
-                } else if (!equipment) {
-                    // 空きスロット
-                    const row = worksheet.addRow([`${u}U`, '', '', '', '', '', '-', '-', '-']);
-                    const rowNumber = row.number;
-                    
-                    // U番号のスタイル
-                    const uCell = worksheet.getCell(rowNumber, 1);
-                    uCell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFF0F0F0' }
-                    };
-                    uCell.font = { bold: true, size: 9 };
-                    uCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    uCell.border = {
-                        top: {style:'thin'},
-                        left: {style:'medium'},
-                        bottom: {style:'thin'},
-                        right: {style:'thin'}
-                    };
-                    
-                    // フレーム列のスタイル
-                    [2, 6].forEach(col => {
-                        const frameCell = worksheet.getCell(rowNumber, col);
-                        frameCell.fill = {
+                        
+                        // ラック内部（空きエリア - 統一された色）
+                        const emptyCell = worksheet.getCell(rowNumber, 3);
+                        emptyCell.fill = {
                             type: 'pattern',
                             pattern: 'solid',
-                            fgColor: { argb: 'FF3A3A3A' }
+                            fgColor: { argb: 'FFD8D8D8' }
                         };
-                        frameCell.border = {
+                        emptyCell.border = {
                             top: {style:'thin'},
                             left: {style:'thin'},
                             bottom: {style:'thin'},
                             right: {style:'thin'}
                         };
-                    });
-                    
-                    // 空きスロット（3-5列を結合）
-                    worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
-                    const emptyCell = worksheet.getCell(rowNumber, 3);
-                    emptyCell.value = '【 空き 】';
-                    emptyCell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF0F0F0F' }
-                    };
-                    emptyCell.font = { 
-                        color: { argb: 'FF666666' },
-                        size: 9
-                    };
-                    emptyCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    emptyCell.border = {
-                        top: {style:'thin', color: {argb: 'FF2A2A2A'}},
-                        left: {style:'thin'},
-                        bottom: {style:'thin', color: {argb: 'FF2A2A2A'}},
-                        right: {style:'thin'}
-                    };
-                    
-                    // 他の列のスタイル
-                    for (let col = 7; col <= 9; col++) {
-                        const cell = worksheet.getCell(rowNumber, col);
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        cell.border = {
-                            top: {style:'thin'},
-                            left: {style:'thin'},
-                            bottom: {style:'thin'},
-                            right: {style:'thin'}
-                        };
+                        
+                        // その他の列
+                        for (let col = 7; col <= 9; col++) {
+                            const cell = worksheet.getCell(rowNumber, col);
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFF5F5F5' }
+                            };
+                            cell.font = { color: { argb: 'FFA0A0A0' }, size: 9 };
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            cell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                        }
                     }
                     
-                    u--;
-                } else {
-                    // 機器の中間部分なのでスキップ
-                    u--;
-                }
-            }
-            
-            // 下部フレーム
-            const bottomFrameRow = worksheet.addRow(['', '', '', '', '', '', '', '', '']);
-            const bottomRowNumber = worksheet.rowCount;
-            worksheet.mergeCells(bottomRowNumber, 1, bottomRowNumber, 6);
-            const bottomCell = worksheet.getCell(bottomRowNumber, 1);
-            bottomCell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF2A2A2A' }
-            };
-            bottomCell.border = {
-                top: {style:'medium'},
-                left: {style:'medium'},
-                bottom: {style:'medium'},
-                right: {style:'medium'}
-            };
-            
-            // 空行
-            worksheet.addRow([]);
-            
-            // 合計行
-            const totalPower = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
-            const totalRow = worksheet.addRow(['', '合計消費電力', '', '', '', '', totalPower, 'W', '']);
-            const totalRowNumber = worksheet.rowCount;
-            
-            worksheet.mergeCells(totalRowNumber, 2, totalRowNumber, 6);
-            
-            const totalLabelCell = worksheet.getCell(totalRowNumber, 2);
-            totalLabelCell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFFFEB3B' }
-            };
-            totalLabelCell.font = { bold: true, color: { argb: 'FF000000' }, size: 12 };
-            totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            totalLabelCell.border = {
-                top: {style:'medium'},
-                left: {style:'medium'},
-                bottom: {style:'medium'},
-                right: {style:'medium'}
-            };
-            
-            const totalValueCell = worksheet.getCell(totalRowNumber, 7);
-            totalValueCell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFFFEB3B' }
-            };
-            totalValueCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 14 };
-            totalValueCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            totalValueCell.border = {
-                top: {style:'medium'},
-                left: {style:'medium'},
-                bottom: {style:'medium'},
-                right: {style:'medium'}
-            };
-            
-            const totalUnitCell = worksheet.getCell(totalRowNumber, 8);
-            totalUnitCell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFFFEB3B' }
-            };
-            totalUnitCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 12 };
-            totalUnitCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            totalUnitCell.border = {
-                top: {style:'medium'},
-                left: {style:'medium'},
-                bottom: {style:'medium'},
-                right: {style:'medium'}
-            };
-            
-            // 列幅の設定
-            worksheet.columns = [
-                { width: 8 },   // U番号
-                { width: 2 },   // フレーム左
-                { width: 15 },  // ラック内部1
-                { width: 15 },  // ラック内部2
-                { width: 15 },  // ラック内部3
-                { width: 2 },   // フレーム右
-                { width: 12 },  // 消費電力
-                { width: 15 },  // 機器タイプ
-                { width: 25 }   // 機器名
-            ];
-            
-            // 行の高さ設定
-            worksheet.getRow(1).height = 30;
-            worksheet.getRow(3).height = 25;
-            // 全データ行の高さを統一
-            for (let i = 4; i <= worksheet.rowCount - 2; i++) {
-                const row = worksheet.getRow(i);
-                if (row) {
-                    row.height = 20;
-                }
-            }
-        });
-        
-        // サマリーシートを追加
-        const summarySheet = workbook.addWorksheet('サマリー', { position: 0 });
-        
-        // タイトル
-        summarySheet.mergeCells('A1:E1');
-        const summaryTitle = summarySheet.getCell('A1');
-        summaryTitle.value = 'サーバーラック搭載図 サマリー';
-        summaryTitle.font = { bold: true, size: 16, color: { argb: 'FF2C3E50' } };
-        summaryTitle.alignment = { horizontal: 'center', vertical: 'middle' };
-        summaryTitle.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFE8F5E9' }
-        };
-        
-        summarySheet.addRow([]);
-        summarySheet.addRow(['作成日時:', new Date().toLocaleString('ja-JP')]);
-        summarySheet.addRow([]);
-        
-        // ヘッダー
-        const summaryHeader = summarySheet.addRow(['No.', 'ラック名', '高さ(U)', '搭載機器数', '消費電力(W)']);
-        summaryHeader.font = { bold: true };
-        summaryHeader.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FF4A90E2' }
-        };
-        summaryHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        
-        let totalSystemPower = 0;
-        let totalEquipmentCount = 0;
-        
-        // 各ラックの情報
-        racks.forEach((rack, index) => {
-            const power = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
-            totalSystemPower += power;
-            totalEquipmentCount += rack.equipment.length;
-            
-            const row = summarySheet.addRow([
-                index + 1,
-                rack.name,
-                rack.height,
-                rack.equipment.length,
-                power
-            ]);
-            
-            // 交互に背景色を設定
-            if (index % 2 === 0) {
-                row.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFF5F5F5' }
-                };
-            }
-        });
-        
-        summarySheet.addRow([]);
-        
-        // 合計行
-        const totalRow = summarySheet.addRow(['', '合計', '', totalEquipmentCount, totalSystemPower]);
-        totalRow.font = { bold: true, size: 12 };
-        totalRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFEB3B' }
-        };
-        
-        // 列幅設定
-        summarySheet.columns = [
-            { width: 8 },   // No.
-            { width: 25 },  // ラック名
-            { width: 12 },  // 高さ
-            { width: 15 },  // 搭載機器数
-            { width: 15 }   // 消費電力
-        ];
-        
-        // 枠線を追加
-        const lastRow = summarySheet.lastRow.number;
-        for (let row = 1; row <= lastRow; row++) {
-            for (let col = 1; col <= 5; col++) {
-                const cell = summarySheet.getCell(row, col);
-                if (row === 1 || row === 5 || row === lastRow) {
-                    cell.border = {
+                    // ラック上部の蓋（ラックの直上に配置 - A列は含めない）
+                    if (emptyRowsCount >= 0) {
+                        const topCapRow = worksheet.addRow(['-', '', 'ラック上部', '', '', '', '-', '-', '-']);
+                        const topCapRowNumber = worksheet.rowCount;
+                        
+                        // B列からF列まで結合（A列は含めない）
+                        worksheet.mergeCells(topCapRowNumber, 2, topCapRowNumber, 6);
+                        
+                        // A列（U番号列）のスタイル
+                        const aCell = worksheet.getCell(topCapRowNumber, 1);
+                        aCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFE8E8E8' }
+                        };
+                        aCell.font = { color: { argb: 'FFA0A0A0' }, size: 9 };
+                        aCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        aCell.border = {
+                            top: {style:'medium'},
+                            left: {style:'medium'},
+                            bottom: {style:'medium'},
+                            right: {style:'thin'}
+                        };
+                        
+                        // B-F列（結合された蓋部分）
+                        const topCapCell = worksheet.getCell(topCapRowNumber, 2);
+                        topCapCell.value = 'ラック上部';
+                        topCapCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FF2A2A2A' }
+                        };
+                        topCapCell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+                        topCapCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        topCapCell.border = {
+                            top: {style:'medium'},
+                            left: {style:'medium'},
+                            bottom: {style:'medium'},
+                            right: {style:'medium'}
+                        };
+                        
+                        // G-I列のスタイル
+                        for (let col = 7; col <= 9; col++) {
+                            const cell = worksheet.getCell(topCapRowNumber, col);
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFF5F5F5' }
+                            };
+                            cell.font = { color: { argb: 'FFA0A0A0' }, size: 9 };
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            cell.border = {
+                                top: {style:'medium'},
+                                left: {style:'thin'},
+                                bottom: {style:'medium'},
+                                right: {style:'medium'}
+                            };
+                        }
+                    }
+                    
+                    // 各U位置の占有状態を管理する配列
+                    const unitOccupancy = new Array(rack.height + 1).fill(null);
+                    
+                    // 機器の占有状態をマーク
+                    rack.equipment.forEach(eq => {
+                        for (let u = eq.startUnit; u < eq.startUnit + eq.size; u++) {
+                            unitOccupancy[u] = eq;
+                        }
+                    });
+                    
+                    // 各Uごとの行を生成（上から下へ）
+                    let u = rack.height;
+                    while (u >= 1) {
+                        const equipment = unitOccupancy[u];
+                        
+                        // 機器の最上部のUnitの場合
+                        if (equipment && u === equipment.startUnit + equipment.size - 1) {
+                            const startRow = worksheet.rowCount + 1;
+                            
+                            // 機器のサイズ分の行を先に作成
+                            for (let i = 0; i < equipment.size; i++) {
+                                const currentU = u - i;
+                                worksheet.addRow([`${currentU}U`, '', '', '', '', '', '', '', '']);
+                            }
+                            
+                            const endRow = startRow + equipment.size - 1;
+                            
+                            // セルの結合
+                            worksheet.mergeCells(startRow, 3, endRow, 5); // ラック内部
+                            worksheet.mergeCells(startRow, 7, endRow, 7); // 消費電力
+                            worksheet.mergeCells(startRow, 8, endRow, 8); // 機器タイプ
+                            worksheet.mergeCells(startRow, 9, endRow, 9); // 機器名
+                            
+                            // 各行のU番号とフレームのスタイル設定
+                            for (let rowIdx = startRow; rowIdx <= endRow; rowIdx++) {
+                                // U番号のスタイル
+                                const uCell = worksheet.getCell(rowIdx, 1);
+                                uCell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFF0F0F0' }
+                                };
+                                uCell.font = { bold: true, size: 9 };
+                                uCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                                uCell.border = {
+                                    top: {style:'thin'},
+                                    left: {style:'thin'},
+                                    bottom: {style:'thin'},
+                                    right: {style:'thin'}
+                                };
+                                
+                                // フレーム列のスタイル
+                                [2, 6].forEach(col => {
+                                    const frameCell = worksheet.getCell(rowIdx, col);
+                                    frameCell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FF3A3A3A' }
+                                    };
+                                    frameCell.border = {
+                                        top: {style:'thin'},
+                                        left: {style:'thin'},
+                                        bottom: {style:'thin'},
+                                        right: {style:'thin'}
+                                    };
+                                });
+                            }
+                            
+                            // 機器データを設定
+                            const equipmentCell = worksheet.getCell(startRow, 3);
+                            equipmentCell.value = `${equipment.name} (${equipment.size}U)`;
+                            
+                            // 機器タイプに応じた色を設定
+                            const color = getEquipmentColorARGB(equipment.type);
+                            equipmentCell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: color }
+                            };
+                            equipmentCell.font = { 
+                                bold: true, 
+                                color: { argb: 'FFFFFFFF' },
+                                size: 10
+                            };
+                            equipmentCell.alignment = { 
+                                horizontal: 'center', 
+                                vertical: 'middle',
+                                wrapText: true 
+                            };
+                            // 機器セルの罫線は細線に変更
+                            equipmentCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                            
+                            // 消費電力
+                            const powerCell = worksheet.getCell(startRow, 7);
+                            powerCell.value = equipment.power || 0;
+                            powerCell.font = { 
+                                bold: true,
+                                color: { argb: 'FFE74C3C' }
+                            };
+                            powerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            powerCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                            
+                            // 機器タイプ
+                            const typeCell = worksheet.getCell(startRow, 8);
+                            typeCell.value = getTypeDisplayName(equipment.type);
+                            typeCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            typeCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                            
+                            // 機器名
+                            const nameCell = worksheet.getCell(startRow, 9);
+                            nameCell.value = equipment.name;
+                            nameCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            nameCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                            
+                            // 機器のサイズ分だけUをスキップ
+                            u -= equipment.size;
+                            
+                        } else if (!equipment) {
+                            // 空きスロット
+                            const row = worksheet.addRow([`${u}U`, '', '', '', '', '', '-', '-', '-']);
+                            const rowNumber = row.number;
+                            
+                            // U番号のスタイル
+                            const uCell = worksheet.getCell(rowNumber, 1);
+                            uCell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFF0F0F0' }
+                            };
+                            uCell.font = { bold: true, size: 9 };
+                            uCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            uCell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                            
+                            // フレーム列のスタイル
+                            [2, 6].forEach(col => {
+                                const frameCell = worksheet.getCell(rowNumber, col);
+                                frameCell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FF3A3A3A' }
+                                };
+                                frameCell.border = {
+                                    top: {style:'thin'},
+                                    left: {style:'thin'},
+                                    bottom: {style:'thin'},
+                                    right: {style:'thin'}
+                                };
+                            });
+                            
+                            // 空きスロット（3-5列を結合）
+                            worksheet.mergeCells(rowNumber, 3, rowNumber, 5);
+                            const emptyCell = worksheet.getCell(rowNumber, 3);
+                            emptyCell.value = '【 空き 】';
+                            emptyCell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FF2A2A2A' }
+                            };
+                            emptyCell.font = { 
+                                color: { argb: 'FFB0B0B0' },
+                                size: 9
+                            };
+                            emptyCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            emptyCell.border = {
+                                top: {style:'thin', color: {argb: 'FF3A3A3A'}},
+                                left: {style:'thin'},
+                                bottom: {style:'thin', color: {argb: 'FF3A3A3A'}},
+                                right: {style:'thin'}
+                            };
+                            
+                            // 他の列のスタイル
+                            for (let col = 7; col <= 9; col++) {
+                                const cell = worksheet.getCell(rowNumber, col);
+                                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                                cell.border = {
+                                    top: {style:'thin'},
+                                    left: {style:'thin'},
+                                    bottom: {style:'thin'},
+                                    right: {style:'thin'}
+                                };
+                            }
+                            
+                            u--;
+                        } else {
+                            // 機器の中間部分なのでスキップ
+                            u--;
+                        }
+                    }
+                    
+                    // 下部フレーム
+                    const bottomFrameRow = worksheet.addRow(['', '', '', '', '', '', '', '', '']);
+                    const bottomRowNumber = worksheet.rowCount;
+                    worksheet.mergeCells(bottomRowNumber, 1, bottomRowNumber, 6);
+                    const bottomCell = worksheet.getCell(bottomRowNumber, 1);
+                    bottomCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF2A2A2A' }
+                    };
+                    bottomCell.border = {
                         top: {style:'medium'},
                         left: {style:'medium'},
                         bottom: {style:'medium'},
                         right: {style:'medium'}
                     };
-                } else if (row > 5 && row < lastRow) {
-                    cell.border = {
-                        top: {style:'thin'},
-                        left: {style:'thin'},
-                        bottom: {style:'thin'},
-                        right: {style:'thin'}
+                    
+                    // 空行
+                    worksheet.addRow([]);
+                    
+                    // 合計行
+                    const totalPower = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
+                    const totalRow = worksheet.addRow(['', '合計消費電力', '', '', '', '', totalPower, 'W', '']);
+                    const totalRowNumber = worksheet.rowCount;
+                    
+                    worksheet.mergeCells(totalRowNumber, 2, totalRowNumber, 6);
+                    
+                    const totalLabelCell = worksheet.getCell(totalRowNumber, 2);
+                    totalLabelCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFEB3B' }
                     };
+                    totalLabelCell.font = { bold: true, color: { argb: 'FF000000' }, size: 12 };
+                    totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    totalLabelCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
+                    };
+                    
+                    const totalValueCell = worksheet.getCell(totalRowNumber, 7);
+                    totalValueCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFEB3B' }
+                    };
+                    totalValueCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 14 };
+                    totalValueCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    totalValueCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
+                    };
+                    
+                    const totalUnitCell = worksheet.getCell(totalRowNumber, 8);
+                    totalUnitCell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFEB3B' }
+                    };
+                    totalUnitCell.font = { bold: true, color: { argb: 'FFE74C3C' }, size: 12 };
+                    totalUnitCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    totalUnitCell.border = {
+                        top: {style:'medium'},
+                        left: {style:'medium'},
+                        bottom: {style:'medium'},
+                        right: {style:'medium'}
+                    };
+                    
+                    // 列幅の設定
+                    worksheet.columns = [
+                        { width: 8 },   // U番号
+                        { width: 2 },   // フレーム左
+                        { width: 15 },  // ラック内部1
+                        { width: 15 },  // ラック内部2
+                        { width: 15 },  // ラック内部3
+                        { width: 2 },   // フレーム右
+                        { width: 12 },  // 消費電力
+                        { width: 15 },  // 機器タイプ
+                        { width: 25 }   // 機器名
+                    ];
+                    
+                    // 行の高さ設定
+                    worksheet.getRow(1).height = 30;
+                    worksheet.getRow(3).height = 25;
+                    // 全データ行の高さを統一
+                    for (let i = 4; i <= worksheet.rowCount - 2; i++) {
+                        const row = worksheet.getRow(i);
+                        if (row) {
+                            row.height = 20;
+                        }
+                    }
+                });
+                
+                // サマリーシートを追加
+                const summarySheet = workbook.addWorksheet('サマリー', { position: 0 });
+                
+                // タイトル
+                summarySheet.mergeCells('A1:E1');
+                const summaryTitle = summarySheet.getCell('A1');
+                summaryTitle.value = 'サーバーラック搭載図 サマリー';
+                summaryTitle.font = { bold: true, size: 16, color: { argb: 'FF2C3E50' } };
+                summaryTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+                summaryTitle.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFE8F5E9' }
+                };
+                
+                summarySheet.addRow([]);
+                summarySheet.addRow(['作成日時:', new Date().toLocaleString('ja-JP')]);
+                summarySheet.addRow([]);
+                
+                // ヘッダー行を作成（背景色の設定を修正）
+                const headerValues = ['No.', 'ラック名', '高さ(U)', '搭載機器数', '消費電力(W)'];
+                const summaryHeader = summarySheet.addRow(headerValues);
+                
+                // ヘッダー行のスタイルを個別に設定
+                for (let col = 1; col <= 5; col++) {
+                    const cell = summarySheet.getCell(5, col);
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF4A90E2' }
+                    };
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
                 }
-                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                
+                let totalSystemPower = 0;
+                let totalEquipmentCount = 0;
+                
+                // 各ラックの情報
+                racks.forEach((rack, index) => {
+                    const power = rack.equipment.reduce((sum, eq) => sum + (eq.power || 0), 0);
+                    totalSystemPower += power;
+                    totalEquipmentCount += rack.equipment.length;
+                    
+                    const rowValues = [
+                        index + 1,
+                        rack.name,
+                        rack.height,
+                        rack.equipment.length,
+                        power
+                    ];
+                    const row = summarySheet.addRow(rowValues);
+                    const rowNumber = row.number;
+                    
+                    // 交互に背景色を設定（個別のセルに設定）
+                    if (index % 2 === 0) {
+                        for (let col = 1; col <= 5; col++) {
+                            const cell = summarySheet.getCell(rowNumber, col);
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFF5F5F5' }
+                            };
+                        }
+                    }
+                });
+                
+                summarySheet.addRow([]);
+                
+                // 合計行
+                const totalValues = ['', '合計', '', totalEquipmentCount, totalSystemPower];
+                const totalRow = summarySheet.addRow(totalValues);
+                const totalRowNumber = totalRow.number;
+                
+                // 合計行のスタイルを個別に設定
+                for (let col = 1; col <= 5; col++) {
+                    const cell = summarySheet.getCell(totalRowNumber, col);
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFFFEB3B' }
+                    };
+                    cell.font = { bold: true, size: 12 };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                }
+                
+                // 列幅設定
+                summarySheet.columns = [
+                    { width: 8 },   // No.
+                    { width: 25 },  // ラック名
+                    { width: 12 },  // 高さ
+                    { width: 15 },  // 搭載機器数
+                    { width: 15 }   // 消費電力
+                ];
+                
+                // 枠線を追加
+                const lastRow = summarySheet.lastRow.number;
+                for (let row = 1; row <= lastRow; row++) {
+                    for (let col = 1; col <= 5; col++) {
+                        const cell = summarySheet.getCell(row, col);
+                        if (row === 1 || row === 5 || row === lastRow) {
+                            cell.border = {
+                                top: {style:'medium'},
+                                left: {style:'medium'},
+                                bottom: {style:'medium'},
+                                right: {style:'medium'}
+                            };
+                        } else if (row > 5 && row < lastRow) {
+                            cell.border = {
+                                top: {style:'thin'},
+                                left: {style:'thin'},
+                                bottom: {style:'thin'},
+                                right: {style:'thin'}
+                            };
+                        }
+                        if (!cell.alignment) {
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        }
+                    }
+                }
+                
+                // Excelファイルとして保存
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                });
+                
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `rack_diagram_${new Date().getTime()}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                console.log('Excel出力完了');
+                
+            } catch (error) {
+                console.error('Excel出力エラー:', error);
+                alert('Excel出力中にエラーが発生しました。\n' + error.message);
             }
         }
-        
-        // Excelファイルとして保存
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { 
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-        });
-        
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `rack_diagram_${new Date().getTime()}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        console.log('Excel出力完了');
-        
-    } catch (error) {
-        console.error('Excel出力エラー:', error);
-        alert('Excel出力中にエラーが発生しました。\n' + error.message);
-    }
-}
-
         
         // 機器タイプの色を取得する関数（ARGB形式）
         function getEquipmentColorARGB(type) {
